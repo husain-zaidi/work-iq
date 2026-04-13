@@ -1,7 +1,7 @@
 ---
 name: ui-widget-developer
 description: |
-  Build MCP (Model Context Protocol) servers for Copilot Chat using the OpenAI Apps SDK or MCP Apps SDK widget rendering support (any language). Use this skill when:
+  Build MCP servers for Copilot Chat using the OpenAI Apps SDK or MCP Apps SDK widget rendering support (any language). Use this skill when:
   - Creating MCP servers that integrate with M365 Copilot declarative agents
   - Building rich interactive widgets (HTML) that render in Copilot Chat
   - Implementing tools that return structuredContent for widget rendering
@@ -9,7 +9,7 @@ description: |
   - Setting up devtunnels for localhost MCP server exposure
   - Configuring mcpPlugin.json manifests with RemoteMCPServer runtime
   Do NOT use this skill for general agent development (scaffolding, manifests, deployment) — use declarative-agent-developer instead. This skill is ONLY for MCP server + widget development.
-  Triggers: "MCP server for Copilot", "OpenAI Apps SDK", "Copilot widget", "structuredContent", "MCP plugin", "devtunnels MCP", "bizchat MCP", "OAI app", "widget rendering", "text/html+skybridge", "UI widget"
+  Triggers: "MCP server for Copilot", "OpenAI Apps SDK", "Copilot widget", "structuredContent", "MCP plugin", "devtunnels MCP", "OAI app", "widget rendering", "UI widget"
 ---
 
 # Copilot MCP Server Development

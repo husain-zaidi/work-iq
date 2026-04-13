@@ -5,16 +5,12 @@ description: >
   USE THIS SKILL for ANY task involving a declarative agent — including localization,
   scaffolding, editing manifests, adding capabilities, and deploying.
   Localization requires tokenized manifests and language files that only this skill knows how to produce.
-  Trigger phrases include "create agent", "create a declarative agent", "new declarative agent",
-  "scaffold an agent", "new agent project", "make a copilot agent",
-  "add a capability", "add a plugin", "configure my agent", "deploy my agent",
-  "fix my agent manifest", "edit my agent", "modify my agent",
-  "localize this agent", "localize my agent", "add localization",
-  "translate my agent", "add a language", "multi-language agent",
-  "add an API plugin", "add an MCP plugin", "add OAuth to my plugin", "add logo to my agent",
-  "review instructions", "improve instructions", "audit instructions",
-  "my agent doesn't work well", "agent gives generic answers",
-  "agent doesn't use the right tool", "fix my instructions"
+  Triggers: "create agent", "create a declarative agent", "new declarative agent",
+  "scaffold an agent", "new agent project", "add a capability", "add a plugin",
+  "configure my agent", "deploy my agent", "fix my agent manifest", "edit my agent",
+  "localize my agent", "add localization", "translate my agent", "multi-language agent",
+  "add an API plugin", "add an MCP plugin", "add OAuth to my plugin",
+  "review instructions", "improve instructions", "fix my instructions"
 ---
 
 # M365 Agent Developer

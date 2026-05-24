@@ -9,7 +9,7 @@ compatibility: >
 
 # WorkIQ
 
-WorkIQ connects AI agents to Microsoft 365 Copilot, providing access to workplace intelligence grounded in organizational data, connected through Microsoft Graph, and personalized through memory and context.
+WorkIQ connects AI agents to Microsoft 365 Copilot for workplace intelligence grounded in organizational data. This skill teaches the model how to use the full WorkIQ toolset: the agentic `ask_work_iq` tool for semantic questions, the fast **entity tools** for direct structured access to M365 data (`fetch_work_iq`, `create_entity_work_iq`, `update_entity_work_iq`, `delete_entity_work_iq`, `do_action_work_iq`, `call_function_work_iq`, `search_paths_work_iq`, `get_schema_work_iq`, `fetch_blob_work_iq`, `upload_blob_work_iq`), and the **WorkIQ CLI commands** used for one-time setup and configuration (auth login/logout, granting additional permission scopes, viewing or changing config, checking the installed version).
 
 ## 🛑 STOP — Read This Before Your First Tool Call
 
@@ -77,7 +77,7 @@ Authentication is automatic with the connected user's credentials.
 
 ## CLI commands (out-of-band of the MCP server)
 
-Some WorkIQ operations are **not exposed as MCP tools** and must be run as shell commands — for example `auth login`/`logout`, `auth consent` (granting additional Graph scopes), `config show`/`set`/`reset`, and `version`. Always invoke them via `npx -y @microsoft/workiq@preview <command>` so you hit the same binary version the MCP server uses.
+Some WorkIQ operations are **not exposed as MCP tools** and must be run as shell commands — for example `auth login`/`logout`, `auth consent` (granting additional permission scopes), `config show`/`set`/`reset`, and `version`. Always invoke them via `npx -y @microsoft/workiq@preview <command>` so you hit the same binary version the MCP server uses.
 
 For the full command reference and usage guidance, see `references/cli-commands.md`.
 
@@ -143,8 +143,8 @@ Entity tools provide **fast, direct access to specific M365 data** via Work IQ A
 
 All URL parameters (`entityUrls`, `parentUrl`, `entityUrl`, `actionUrl`, `functionUrl`, `blobUrl`, `targetUrl`) **must**:
 
-1. **Omit the scheme, authority, and API version** — start with `/me/...` or `/users/...`, never include `https://graph.microsoft.com/v1.0`
-   - ❌ `https://graph.microsoft.com/v1.0/me/messages`
+1. **Omit any scheme, authority, and API version prefix** — start with `/me/...` or `/users/...`, never include a full `https://...` URL or a `/v1.0/...` prefix
+   - ❌ `https://example.com/v1.0/me/messages`
    - ❌ `/v1.0/me/messages`
    - ✅ `/me/messages`
 2. **URL-encode all query parameter values** — spaces become `%20`, quotes become `%27`, etc.
@@ -156,7 +156,7 @@ All URL parameters (`entityUrls`, `parentUrl`, `entityUrl`, `actionUrl`, `functi
 | `search_paths_work_iq` | Discover available API paths | `filter` (regex), `backend` |
 | `get_schema_work_iq` | Inspect fields and body shape for a path | `path`, `httpMethod`, `apiVersion` |
 | `fetch_work_iq` | Fetch entities by path (GET) | `entityUrls[]` — supports OData (`$filter`, `$select`, `$top`) |
-| `call_function_work_iq` | Call Graph functions (delta, getSchedule, reminderView) | `functionUrl` with inline function params |
+| `call_function_work_iq` | Call named functions (delta, getSchedule, reminderView) | `functionUrl` with inline function params |
 | `create_entity_work_iq` | Create a new entity (POST to collection) | `parentUrl`, `jsonBody` |
 | `update_entity_work_iq` | Update fields on an existing entity (PATCH) | `entityUrl` with ID, `jsonBody` |
 | `delete_entity_work_iq` | Delete an entity (DELETE) | `entityUrl` with ID |

@@ -1,6 +1,10 @@
 ---
 name: workiq-preview
 description: Query Microsoft 365 Copilot for workplace intelligence - emails, meetings, documents, Teams messages, and people information. USE THIS SKILL for ANY workplace-related question where the answer likely exists in Microsoft 365 data. This includes questions about what someone said, shared, or communicated; meetings, emails, messages, or documents; priorities, decisions, or context from colleagues; organizational knowledge; project status; team activities; or any information that would be in Outlook, Teams, SharePoint, OneDrive, or Calendar. When in doubt about workplace context, try WorkIQ first. Trigger phrases include "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what meetings", "what documents", "who is working on", "what's the status of", "any updates on", etc.
+compatibility: >
+  Requires Node.js 18+ and npm (provides `npx`, used to launch the
+  @microsoft/workiq MCP server). If missing, see
+  references/install-prerequisites.md for platform-specific install commands.
 ---
 
 # WorkIQ
@@ -54,6 +58,18 @@ See [Resolving tool names in your host](#resolving-tool-names-in-your-host) belo
 **DO NOT say "I don't have access to emails/meetings/messages"** - use WorkIQ instead!
 
 **When in doubt, use WorkIQ.** It's better to query and get no results than to miss workplace context.
+
+## Prerequisites
+
+The WorkIQ MCP server runs via `npx`, which requires **Node.js 18+** and **npm** on the user's machine.
+
+If a WorkIQ tool call fails with an error suggesting `npx`, `node`, or `npm` is not found (for example, `'npx' is not recognized` on Windows, or `command not found: npx` on macOS/Linux):
+
+1. Run `node --version` to confirm whether Node.js is installed and at version 18 or higher.
+2. If it is missing or too old, read [references/install-prerequisites.md](references/install-prerequisites.md) and walk the user through the install command appropriate for their operating system.
+3. Ask the user to **restart the Copilot CLI session** after installing — the MCP server is only launched at session start.
+
+Do not silently retry the tool call or give up — guide the user through the install.
 
 ## Configuration
 

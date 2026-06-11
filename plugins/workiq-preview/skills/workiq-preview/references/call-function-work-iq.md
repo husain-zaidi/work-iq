@@ -14,8 +14,27 @@ Call an OData function via HTTP GET. Functions are **side-effect-free** named op
 
 - When you need a computed result that takes no request body (`delta`, `reminderView`)
 - Any time the OData path uses function call syntax `functionName(param=value)` and the operation is documented as GET
+- **Any "what's new / what's changed / what was added or removed since X" question** — that is a
+  delta query, and this tool is the only correct route for it
 
 If you're not sure whether something is a function or an action, run `get_schema_work_iq` on the path with `httpMethod: "get"` first. If no GET schema is returned but POST is, route to `do_action_work_iq`.
+
+## Delta queries (change tracking)
+
+Delta endpoints exist for mail (`/me/mailFolders/{id}/messages/delta`), calendar
+(`/me/calendarView/delta?startDateTime=...&endDateTime=...`), contacts (`/me/contacts/delta`),
+and more.
+
+- **Only via this tool.** Calling a delta path through `fetch_work_iq` fails. Do not approximate
+  delta with `fetch` + a `lastModifiedDateTime` filter — that misses deletions and true change
+  semantics.
+- **First sync:** call the delta path with no token. Page through `@odata.nextLink` responses
+  (re-issue each link as a server-relative `functionUrl`) until you get `@odata.deltaLink`.
+- **Resume:** if the user has a saved delta token / deltaLink, call **that link's path and query
+  verbatim** (as a server-relative path) instead of starting over. The `$deltatoken` /
+  `$skiptoken` values are opaque — never invent or modify them.
+- Items in a delta response with an `@removed` annotation are deletions — report adds, changes,
+  and removals distinctly, and don't report counts the response doesn't support.
 
 ## Examples
 

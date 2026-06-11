@@ -1,6 +1,6 @@
 ---
 name: workiq-preview
-description: Preview build of WorkIQ — the full Microsoft 365 tool surface: agentic semantic queries via ask_work_iq PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "upload to OneDrive", "download attachment". When in doubt about workplace context, try WorkIQ first.
+description: Preview build of WorkIQ — the full Microsoft 365 tool surface: agentic semantic queries via ask_work_iq PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on", "what's new/changed since". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "add a task", "remind me to", "mark the task done", "show my to-do list", "upload to OneDrive", "download attachment". When in doubt about workplace context, try WorkIQ first.
 compatibility: >
   Requires Node.js 18+ and npm (provides `npx`, used to launch the
   @microsoft/workiq MCP server). If missing, see
@@ -29,7 +29,7 @@ See [Resolving tool names in your host](#resolving-tool-names-in-your-host) belo
 
 **USE WorkIQ for ANY workplace-related question.** If the answer might exist in Microsoft 365 data, try WorkIQ first.
 
-**Choosing the right tool:** Use `ask_work_iq` when the question requires **semantic understanding, synthesis, or reasoning** across M365 data ("what did someone say", "what's the status", "summarize"). Use `fetch_work_iq` (or another entity tool) when the question is a **literal lookup of structured data** with a known shape ("list my meetings on Monday", "show me unread emails from X"). Entity tools return in under a second; `ask_work_iq` takes 10–20s per call.
+**Choosing the right tool:** Use `ask_work_iq` when the question requires **semantic understanding, synthesis, or reasoning** across M365 data ("what did someone say", "what's the status", "summarize"). Use `fetch_work_iq` (or another entity tool) when the question is a **literal lookup of structured data** with a known shape ("list my meetings on Monday", "show me unread emails from X"). Entity tools return in under a second; `ask_work_iq` typically takes 10–60 seconds per call and broad questions can run several minutes.
 
 **ALWAYS use WorkIQ when the user asks about:**
 
@@ -51,13 +51,37 @@ See [Resolving tool names in your host](#resolving-tool-names-in-your-host) belo
 | Fetching a known entity by ID | "Get event `AAMk...` details" | `fetch_work_iq` |
 | Listing files in a OneDrive/SharePoint folder | "List files in my OneDrive 'Specs' folder" | `fetch_work_iq` |
 | Listing tasks/plans/buckets in Planner | "List my Planner tasks due this week" | `fetch_work_iq` |
+| Listing / creating / completing tasks & to-dos | "Add a task to follow up with finance", "Mark my task done", "Show my to-do lists" | entity tools on `/me/todo/...` or `/planner/...` — see `references/tasks-work-iq.md` |
 | Org chart / direct reports / manager lookup | "Who are Rob's direct reports?" | `fetch_work_iq` (`/users/{id}/directReports`) |
+| What's new/changed/removed since a point in time | "What's new in my Inbox since this morning?", "What's changed on my calendar since yesterday?", "What's been added to my contacts recently?" | `call_function_work_iq` (delta — `/me/mailFolders/inbox/messages/delta`, `/me/calendarView/delta?...`, `/me/contacts/delta`). **Never call delta via `fetch_work_iq`** — see `references/call-function-work-iq.md` |
 | Sending mail, accepting/declining meetings | "Send this draft", "Accept the 2pm meeting" | `do_action_work_iq` |
 | Creating a calendar event, draft, or task | "Create a calendar event Friday at 3pm" | `create_entity_work_iq` |
 
 **DO NOT say "I don't have access to emails/meetings/messages"** - use WorkIQ instead!
 
+> **🛑 Tasks/to-dos are M365 data — never a local fallback.** "Add a task", "remind me to…",
+> "follow up with…", "mark … done", "my to-do list" all route to WorkIQ entity tools
+> (`/me/todo/...` for personal tasks, `/planner/...` for shared plans). **Do not** create a
+> local markdown todo file, insert into a local/SQL todo table, or use any other builtin
+> task tracker — that does not satisfy the request and the user cannot see it in Outlook/Planner.
+> If a WorkIQ task call fails, report the failure; do not silently substitute local storage.
+> See `references/tasks-work-iq.md`.
+
 **When in doubt, use WorkIQ.** It's better to query and get no results than to miss workplace context.
+
+> **🛑 Report failures honestly — never invent an error cause.** Some failed WorkIQ calls
+> return only `null` with no status code or error body. When that happens:
+>
+> - **Do not claim a specific cause you did not observe.** Never tell the user "this returned
+>   403 / AccessDenied / Insufficient privileges / needs Contacts.ReadWrite" unless that exact
+>   error text appeared in a tool response. Inventing a status code is a false statement.
+> - Say what you actually know: which call you made, and that it failed **without diagnostic
+>   detail**. You may offer likely causes (permissions, unsupported path) only as explicitly
+>   unconfirmed hypotheses.
+> - **Never claim an action succeeded without evidence.** A write counts as done only when the
+>   tool response confirms it (2xx/created/updated). If you could not find the target or the
+>   write failed, say so — do not substitute a different action (e.g., sending a new email
+>   instead of replying) and report the original request as completed.
 
 ## Prerequisites
 
@@ -109,7 +133,7 @@ If you call the logical name verbatim and get a "tool does not exist" error, thi
 
 The primary tool. Ask any workplace question in plain English. This is an **agentic tool** — it orchestrates multi-step operations internally (searching emails, meetings, Teams chats, documents, people) to answer complex questions. Use it when you need intelligence, synthesis, or semantic understanding across M365 data.
 
-> **⏱️ High latency:** Each call takes **10–20 seconds minimum** as the agent performs multiple backend operations. Avoid calling it in tight loops or for simple data retrieval — use the entity tools below for that instead.
+> **⏱️ High latency:** A call typically takes **10–60 seconds** as the agent performs multiple backend operations, and broad questions can run several minutes (the hard limit is ~300s). Avoid calling it in tight loops or for simple data retrieval — use the entity tools below for that instead. If a question is broad, split it into scoped sub-questions rather than one mega-question.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -137,7 +161,56 @@ Entity tools provide **fast, direct access to specific M365 data** via Work IQ A
 | Open-ended question, semantic search, synthesis | `ask_work_iq` (slow but smart) |
 | Fetch a known list, apply a filter, get structured data | entity tools (fast but literal) |
 
-**Recommended workflow:** `search_paths_work_iq` → `get_schema_work_iq` → read/write tool
+**Recommended workflow:** for **well-known paths, go direct** — call the read/write tool immediately (use the cheat sheet below). Only fall back to `search_paths_work_iq` → `get_schema_work_iq` → tool when the path is genuinely unknown or a write body shape is unfamiliar. Do **not** reflexively run `search_paths`/`get_schema` before every common operation.
+
+### 🗺️ Known paths — go direct, skip discovery
+
+| Resource | Path root | Common ops |
+|----------|-----------|-----------|
+| Mail | `/me/messages`, `/me/mailFolders` | list/get/create draft/update/delete; send via `/me/sendMail`, reply/forward/move via `/me/messages/{id}/{action}` |
+| Calendar | `/me/events`, `/me/calendarView` | list/get/create/update/delete; accept/decline via `/me/events/{id}/{action}` |
+| To Do | `/me/todo/lists`, `/me/todo/lists/{listId}/tasks` | list/create/update/complete/delete — see `references/tasks-work-iq.md` |
+| Planner | `/me/planner/plans`, `/planner/tasks` | list/create/update/complete/delete — see `references/tasks-work-iq.md` |
+| People | `/me`, `/users/{id}`, `/users/{id}/directReports`, `/me/manager`, `/me/contacts` | profile, org, contacts — see directory-vs-contacts warning below |
+| Files | `/me/drive`, `/drives/{id}`, `/sites/{id}` | list/get; download via `fetch_blob`, upload via `upload_blob` |
+| Change tracking | `/me/mailFolders/inbox/messages/delta`, `/me/calendarView/delta?...`, `/me/contacts/delta` | "what's new/changed since" — via `call_function_work_iq` only, never `fetch_work_iq` |
+
+### ⚠️ Directory users and personal contacts are different stores
+
+`/users/{id}` (the org directory / AAD) and `/me/contacts/{id}` (the user's personal Outlook
+contacts) are **separate entity types with incompatible IDs**:
+
+- A person found via directory search, people search, or `ask_work_iq` is usually a **directory
+  user** — their ID will **not** work in `/me/contacts/{id}`, and you cannot PATCH personal
+  fields like `businessPhones` onto `/users/{id}` (directory writes are admin-only).
+- "Create/update/delete a contact" means a **personal contact** under `/me/contacts` — resolve
+  the contact ID from `/me/contacts` itself (e.g. `$filter=displayName eq '...'`), never from a
+  directory or people search result.
+- If the person exists only in the directory and not in `/me/contacts`, say so — to update their
+  details as a contact you must create a personal contact first.
+
+### 🛑 Schema/discovery questions stay on MCP — never `web_fetch`
+
+When the user asks about a Graph **schema, payload, parameters, fields, or which endpoints exist**
+("what does sendMail take?", "which fields are updatable?", "what endpoints handle email?"),
+answer with `get_schema_work_iq` / `search_paths_work_iq`. **Do not** answer from the builtin
+`web_fetch` against public docs — those calls produce no MCP evidence and are treated as not
+answering the question. Resolve the WorkIQ tool name (see above) and call the MCP tool.
+
+### 🔁 Resolve-then-act — do not loop searches
+
+To act on a named entity ("the X email", "my Y task", "the Z draft"):
+
+1. Resolve it with **one** `fetch_work_iq` (filter by subject/title/displayName).
+2. If the first fetch misses, try **one** `ask_work_iq` to locate it semantically.
+3. If still not found, **stop and report "not found"** — do **not** fire 10+ more
+   `fetch`/`search_paths`/`ask` calls hunting for it.
+4. Once you have the id, call the mutation (`update_entity` / `delete_entity` / `do_action`)
+   **directly** — finding the target is not the goal; performing the requested action is.
+5. If a mutation fails, fix the request (URL shape, `jsonBody` encoding, ID) and retry **at most
+   once or twice** — never fire the same mutation in a long retry loop, and never sweep it across
+   many entities when the user asked about one. Never use a fabricated or guessed ID (no
+   all-zeros GUIDs, no IDs scraped from search-result URLs).
 
 ### ⚠️ URL Format Rules (ALL entity tools)
 
@@ -191,6 +264,7 @@ Read the relevant reference file for full parameter details and examples:
 - `references/fetch-work-iq.md` — if you need to fetch structured or filtered M365 data
 - `references/call-function-work-iq.md` — if the path uses OData function call syntax (e.g., `reminderView(...)`, `delta`)
 - `references/create-entity-work-iq.md` — if you need to create a new calendar event, email draft, task, etc.
+- `references/tasks-work-iq.md` — if you need to list, create, update, complete, or delete Microsoft To Do / Planner tasks and lists
 - `references/update-entity-work-iq.md` — if you need to update fields on an existing entity
 - `references/delete-entity-work-iq.md` — if you need to delete an entity
 - `references/do-action-work-iq.md` — if you need to send mail, accept/decline meetings, copy/move messages

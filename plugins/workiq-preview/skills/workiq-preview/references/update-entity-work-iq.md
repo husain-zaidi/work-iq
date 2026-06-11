@@ -17,6 +17,20 @@ Update an existing WorkIQ entity via HTTP PATCH. Only the fields you include in 
 - Updating a document's metadata
 - Any partial update to an existing M365 entity
 
+## Gotchas
+
+- **`entityUrl` must address exactly one entity by ID.** A collection or query URL
+  (`/me/planner/tasks?$filter=startswith(title,'...')`) is rejected with
+  "Write requests are only supported on contained entities" — resolve the ID with
+  `fetch_work_iq` first, then PATCH `/.../{id}`.
+- The ID must come from a real tool response for the **same entity type** — a directory user ID
+  does not work on `/me/contacts/{id}`, and an ID scraped from a search-result URL is not an
+  entity ID.
+- Updating one entity means one PATCH. If it fails, fix the request and retry once or twice —
+  do not loop the same PATCH or fan it out across other entities.
+- **Planner writes need an `If-Match` etag** — fetch the task first; on a 412/precondition
+  error, re-fetch and retry (see `references/tasks-work-iq.md`).
+
 ## Workflow
 
 1. Obtain the entity's `id` from `fetch_work_iq` or `create_entity_work_iq`

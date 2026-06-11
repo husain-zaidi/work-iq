@@ -1,6 +1,6 @@
 ---
 name: workiq-preview
-description: Preview build of WorkIQ — the full Microsoft 365 tool surface - agentic semantic queries via ask_work_iq PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on", "what's new/changed since". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "add a task", "remind me to", "mark the task done", "show my to-do list", "upload to OneDrive", "download attachment". When in doubt about workplace context, try WorkIQ first.
+description: Preview build of WorkIQ — the full Microsoft 365 tool surface - agentic semantic queries via ask_work_iq PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on", "what's new/changed since". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "add a task", "remind me to", "mark the task done", "show my to-do list", "send a Teams chat/message", "post in the [channel/chat]", "reply in Teams", "react to the message", "set my presence", "upload to OneDrive", "download attachment". Discovery/schema triggers, "which endpoints/paths exist", "what fields are required/updatable", "what does the API/request body expect", "what parameters does [operation] take", "describe the data model". When in doubt about workplace context, try WorkIQ first.
 compatibility: >
   Requires Node.js 18+ and npm (provides `npx`, used to launch the
   @microsoft/workiq MCP server). If missing, see
@@ -48,6 +48,7 @@ See [Resolving tool names in your host](#resolving-tool-names-in-your-host) belo
 | Listing meetings on a known date/range | "What meetings do I have Monday?" | `fetch_work_iq` (`/me/calendarView`) |
 | Listing emails with concrete filters | "Show my unread emails from Rob this week" | `fetch_work_iq` (`/me/messages`) |
 | Listing Teams chats / channels / members | "List the channels in the DevX team" | `fetch_work_iq` |
+| Sending/replying/reacting in Teams, setting presence | "Send a chat to Alex", "Post in the Daily channel", "React with 👍", "Set me to Busy" | entity tools on `/chats/...` or `/teams/...` — see `references/teams-work-iq.md` |
 | Fetching a known entity by ID | "Get event `AAMk...` details" | `fetch_work_iq` |
 | Listing files in a OneDrive/SharePoint folder | "List files in my OneDrive 'Specs' folder" | `fetch_work_iq` |
 | Listing tasks/plans/buckets in Planner | "List my Planner tasks due this week" | `fetch_work_iq` |
@@ -171,6 +172,7 @@ Entity tools provide **fast, direct access to specific M365 data** via Work IQ A
 | Calendar | `/me/events`, `/me/calendarView` | list/get/create/update/delete; accept/decline via `/me/events/{id}/{action}` |
 | To Do | `/me/todo/lists`, `/me/todo/lists/{listId}/tasks` | list/create/update/complete/delete — see `references/tasks-work-iq.md` |
 | Planner | `/me/planner/plans`, `/planner/tasks` | list/create/update/complete/delete — see `references/tasks-work-iq.md` |
+| Teams | `/me/chats`, `/chats/{chatId}/messages`, `/me/joinedTeams`, `/teams/{teamId}/channels/{channelId}/messages`, `/me/presence` | chats vs channels are different surfaces — see `references/teams-work-iq.md` |
 | People | `/me`, `/users/{id}`, `/users/{id}/directReports`, `/me/manager`, `/me/contacts` | profile, org, contacts — see directory-vs-contacts warning below |
 | Files | `/me/drive`, `/drives/{id}`, `/sites/{id}` | list/get; download via `fetch_blob`, upload via `upload_blob` |
 | Change tracking | `/me/mailFolders/inbox/messages/delta`, `/me/calendarView/delta?...`, `/me/contacts/delta` | "what's new/changed since" — via `call_function_work_iq` only, never `fetch_work_iq` |
@@ -265,6 +267,7 @@ Read the relevant reference file for full parameter details and examples:
 - `references/call-function-work-iq.md` — if the path uses OData function call syntax (e.g., `reminderView(...)`, `delta`)
 - `references/create-entity-work-iq.md` — if you need to create a new calendar event, email draft, task, etc.
 - `references/tasks-work-iq.md` — if you need to list, create, update, complete, or delete Microsoft To Do / Planner tasks and lists
+- `references/teams-work-iq.md` — if you need to send, reply, react, or read Teams chat/channel messages, or get/set presence
 - `references/update-entity-work-iq.md` — if you need to update fields on an existing entity
 - `references/delete-entity-work-iq.md` — if you need to delete an entity
 - `references/do-action-work-iq.md` — if you need to send mail, accept/decline meetings, copy/move messages

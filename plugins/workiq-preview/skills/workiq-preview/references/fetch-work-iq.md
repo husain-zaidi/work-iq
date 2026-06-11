@@ -41,6 +41,9 @@ Collection responses are **pages**, not the full result set. When a response con
   support it and the call fails.
 - If you stop before exhausting pages, **tell the user the list is partial** ("first 25 of
   more") — never present one page as the complete answer.
+- **Cap your paging.** For "latest/recent" questions one page is usually enough; otherwise stop
+  after 2–3 pages unless the user explicitly asked for the complete set. Do not follow
+  `@odata.nextLink` for dozens of pages to enumerate an entire mailbox or message history.
 
 ## URL Format
 

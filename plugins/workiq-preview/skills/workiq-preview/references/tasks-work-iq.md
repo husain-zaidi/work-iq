@@ -21,6 +21,10 @@ When the request is ambiguous ("add a task to follow up with finance"), **defaul
 Microsoft To Do** (`/me/todo/lists/{listId}/tasks`) — it is the user's personal task store.
 Do not run repeated `search_paths` to "decide"; the canonical paths below are stable.
 
+> **Note:** `search_paths_work_iq` may return only Planner paths and miss `/me/todo/...` —
+> that does **not** mean To Do is unavailable. The To Do paths below are valid; call them
+> directly instead of concluding from a path search that the surface doesn't exist.
+
 ## Microsoft To Do — canonical paths
 
 | Operation | Tool | Path |

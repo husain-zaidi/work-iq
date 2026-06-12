@@ -1,0 +1,19 @@
+{
+  "name": "did-web-microsoft.github.io-work-iq",
+  "metadata": {
+    "description": "Generated from ai-catalog.json",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "Microsoft",
+    "url": "did:web:microsoft.github.io:work-iq"
+  },
+  "plugins": [
+    {
+      "name": "workiq-productivity",
+      "source": "./",
+      "description": "WorkIQ productivity skills powered by the local WorkIQ CLI \u2014 read-only insights across email, meetings, calendar, Teams, SharePoint, projects, and people.",
+      "version": "1.0.0"
+    }
+  ]
+}

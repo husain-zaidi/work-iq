@@ -1,0 +1,19 @@
+{
+  "name": "did-web-microsoft.github.io-work-iq",
+  "metadata": {
+    "description": "Generated from ai-catalog.json",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "Microsoft",
+    "url": "did:web:microsoft.github.io:work-iq"
+  },
+  "plugins": [
+    {
+      "name": "workiq",
+      "source": "./",
+      "description": "Query Microsoft 365 data with natural language \u2014 emails, meetings, documents, Teams messages, and more.",
+      "version": "1.0.0"
+    }
+  ]
+}

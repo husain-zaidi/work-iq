@@ -1,8 +1,6 @@
 {
   "name": "workiq-productivity",
-  "description": "WorkIQ productivity skills powered by the local WorkIQ CLI — read-only insights across email, meetings, calendar, Teams, SharePoint, projects, and people.",
   "version": "1.0.0",
-  "author": {
-    "name": "Microsoft"
-  }
+  "description": "WorkIQ productivity skills powered by the local WorkIQ CLI \u2014 read-only insights across email, meetings, calendar, Teams, SharePoint, projects, and people.",
+  "skills": "./skills/"
 }

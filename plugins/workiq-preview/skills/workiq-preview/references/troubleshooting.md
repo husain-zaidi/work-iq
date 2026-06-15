@@ -81,6 +81,27 @@ workiq config set experimental=true
 
 After enabling, retry the original tool call.
 
+## Tool call fails with a `null` / empty response and no error details
+
+**Symptom:** A WorkIQ tool call fails but the response is literally `null` — no status code, no error body, no diagnostic of any kind.
+
+**Cause:** Some backend failures (permission denials, unsupported paths, policy blocks, timeouts) are currently surfaced as a bare `null` response instead of an error message.
+
+**Fix / how to proceed:**
+
+1. Check the request itself first — URL format rules (server-relative path, URL-encoded query values), `jsonBody` string encoding, and that the path/ID is real (no `{id}` literals, no guessed IDs). Fix and retry **once**.
+2. If a multi-URL `fetch` failed, retry the URLs individually — one bad URL can fail the batch.
+3. If it still fails, **stop retrying**. Do not probe many path variants, other backends, or alternative APIs hunting for a way around it.
+4. **Report it honestly:** tell the user which call failed and that the server returned no diagnostic detail. You may suggest possible causes (missing Graph scopes — see the 403 entry below for `workiq auth consent`; unsupported path) only as explicitly unconfirmed hypotheses. **Never state a specific status code or error ("403", "AccessDenied", "Insufficient privileges") that you did not actually observe in a tool response.**
+
+## `search_paths` fails with "internal error" on `sharepoint-rest` / `dataverse`
+
+**Symptom:** `search_paths` with `backend: "sharepoint-rest"` or `backend: "dataverse"` fails with "An internal error occurred while searching paths."
+
+**Cause:** Non-default backends may be unavailable in your environment. They are never needed for core M365 data — mail, calendar, contacts, tasks, people, Teams, and files all live in the default `graph-v1` backend.
+
+**Fix:** Drop the `backend` parameter and search `graph-v1`. Only use the other backends when the user explicitly targets SharePoint REST or Dataverse, and report it if they're unavailable.
+
 ## Entity tool returns a 400 / "bad request" on a Graph URL
 
 **Symptom:** `fetch` or another entity tool returns HTTP 400 with a parser or validation error.
@@ -96,9 +117,9 @@ See the **URL Format Rules** section of `SKILL.md` for full examples.
 
 ## `ask` is slow or appears to hang
 
-**Symptom:** A single call to `ask` takes 10–30 seconds.
+**Symptom:** A single call to `ask` takes anywhere from 10 seconds to a few minutes.
 
-**Cause:** Expected behavior. `ask` is agentic — it performs multiple backend searches internally.
+**Cause:** Expected behavior. `ask` is agentic — it performs multiple backend searches internally. Typical calls run 10–60 seconds; broad questions take longer.
 
 **Fix:** If you only need a literal list, filter, or known entity, use `fetch` (or another entity tool) instead. Entity tools typically return in under a second.
 

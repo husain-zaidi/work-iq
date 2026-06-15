@@ -2,6 +2,10 @@
 
 Query Microsoft 365 Copilot for workplace intelligence using natural language. This is the primary tool for all M365 data questions — it grounds answers in real organizational data via Microsoft Graph.
 
+> **⏱️ Latency:** Typical calls take 10–60 seconds; broad questions can run several minutes (hard limit ~300s). Don't chain many `ask` calls where one scoped call or a fast entity tool would do, and split overly broad questions into focused sub-questions.
+>
+> **Grounding:** Synthesize your answer only from what the response actually contains. If `ask` reports no accessible results or weak evidence, say so — do not pad the answer with specifics the response doesn't support.
+
 ## Parameters
 
 | Parameter | Type | Required | Description |

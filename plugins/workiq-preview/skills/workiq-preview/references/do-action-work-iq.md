@@ -19,6 +19,8 @@ Execute a WorkIQ action via HTTP POST. Actions are named operations that perform
 - Forwarding a message
 - Replying to a message
 - Computing free/busy availability for multiple users (`getSchedule`)
+- Reacting to a Teams message (`setReaction`)
+- Setting the user's Teams presence (`setUserPreferredPresence`)
 - Initiating a large file upload session (`createUploadSession`)
 - Subscribing to change notifications
 
@@ -96,6 +98,26 @@ Distinguish from `create_entity`: use `do_action` for verbs (send, copy, move, a
 ```
 
 `availabilityViewInterval` is optional minutes (default 30, min 5, max 1440). `schedules` is a string array of SMTP addresses (users, distribution lists, rooms, or equipment).
+
+### Set my Teams presence to Busy
+```json
+{
+  "actionUrl": "/me/presence/setUserPreferredPresence",
+  "jsonBody": "{\"availability\":\"Busy\",\"activity\":\"Busy\",\"expirationDuration\":\"PT1H\"}"
+}
+```
+
+Use `setUserPreferredPresence` for user requests ("set me to Busy"). The `setPresence` action is the application-session variant and requires a `sessionId` — don't fall back to it without one.
+
+### React to a Teams chat message
+```json
+{
+  "actionUrl": "/chats/{chatId}/messages/{messageId}/setReaction",
+  "jsonBody": "{\"reactionType\":\"like\"}"
+}
+```
+
+For channel messages use the `/teams/{teamId}/channels/{channelId}/messages/{messageId}/setReaction` path. See `references/teams-work-iq.md` for chat-vs-channel resolution.
 
 ### Initiate a large file upload session
 ```json

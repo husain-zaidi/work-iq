@@ -17,6 +17,34 @@ Fetch one or more WorkIQ entities by path using HTTP GET. Use this for precise, 
 
 Prefer `ask` for open-ended questions. Use `fetch` when you need precise, filtered, or structured data.
 
+> **⚠️ Not for delta queries.** Calling `/.../delta` or `/.../delta()` through `fetch`
+> fails — delta is an OData **function** and must go through `call_function`. See
+> `references/call-function-work-iq.md`.
+
+## Multi-fetch caveats
+
+- A single call accepts **at most 50** entity URLs.
+- The batch result can report an error when **any one** URL fails, even if the other URLs
+  returned data. If a multi-fetch errors, don't discard it — check for successful payloads
+  inside the response, and re-issue only the failing URL on its own to isolate the problem.
+  When a URL might fail (permissions, existence unknown), prefer small batches or single URLs.
+
+## Pagination
+
+Collection responses are **pages**, not the full result set. When a response contains
+`@odata.nextLink`, more results exist:
+
+- To get the next page, call `fetch` again with the `@odata.nextLink` value converted to
+  a server-relative path (strip the scheme/authority/version prefix, keep the path and query
+  string — including the opaque `$skiptoken`).
+- **Do not paginate with `$skip`** — many collections (notably `/me/calendarView`) do not
+  support it and the call fails.
+- If you stop before exhausting pages, **tell the user the list is partial** ("first 25 of
+  more") — never present one page as the complete answer.
+- **Cap your paging.** For "latest/recent" questions one page is usually enough; otherwise stop
+  after 2–3 pages unless the user explicitly asked for the complete set. Do not follow
+  `@odata.nextLink` for dozens of pages to enumerate an entire mailbox or message history.
+
 ## URL Format
 
 Paths must:

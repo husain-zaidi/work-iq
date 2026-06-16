@@ -1,10 +1,10 @@
 ---
 name: workiq-preview
-description: Preview build of WorkIQ — the full Microsoft 365 tool surface - agentic semantic queries via ask PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, Planner plans/tasks, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what planner tasks are due", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on", "what's new/changed since". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "add a task", "remind me to", "mark the task done", "show my planner tasks", "send a Teams chat/message", "post in the [channel/chat]", "reply in Teams", "react to the message", "set my presence", "upload to OneDrive", "download attachment". Discovery/schema triggers, "which endpoints/paths exist", "what fields are required/updatable", "what does the API/request body expect", "what parameters does [operation] take", "describe the data model". When in doubt about workplace context, try WorkIQ first.
+description: WorkIQ — the full Microsoft 365 tool surface - agentic semantic queries via ask PLUS direct, structured reads and writes for emails, meetings, calendar, documents, Teams messages, Planner plans/tasks, OneDrive/SharePoint files, and people. USE THIS SKILL for ANY workplace question or write action where the data lives in Microsoft 365. Read triggers, "what did [person] say", "what are [person]'s priorities", "top of mind from [person]", "what was discussed", "find emails about", "what planner tasks are due", "what meetings do I have", "what documents", "who is working on", "what's the status of", "any updates on", "what's new/changed since". Write triggers, "send email", "reply to [thread]", "forward to", "create a calendar event", "schedule a meeting", "accept/decline the meeting", "mark as read", "delete the draft", "add a task", "remind me to", "mark the task done", "show my planner tasks", "send a Teams chat/message", "post in the [channel/chat]", "reply in Teams", "react to the message", "set my presence", "upload to OneDrive", "download attachment". Discovery/schema triggers, "which endpoints/paths exist", "what fields are required/updatable", "what does the API/request body expect", "what parameters does [operation] take", "describe the data model". When in doubt about workplace context, try WorkIQ first.
 compatibility: >
-  Requires Node.js 18+ and npm (provides `npx`, used to launch the
-  @microsoft/workiq MCP server). If missing, see
-  references/install-prerequisites.md for platform-specific install commands.
+  Uses the hosted WorkIQ MCP endpoint. Node.js 18+ and npm are only needed
+  for optional WorkIQ CLI commands; if missing, see references/install-prerequisites.md
+  for platform-specific install commands.
 ---
 
 # WorkIQ
@@ -128,23 +128,48 @@ Common failure: fetching the entity and stopping, asking the user "did you want 
 
 ## Prerequisites
 
-The WorkIQ MCP server runs via `npx`, which requires **Node.js 18+** and **npm** on the user's machine.
+WorkIQ MCP tool calls use the hosted prod endpoint configured in `.mcp.json`:
 
-If a WorkIQ tool call fails with an error suggesting `npx`, `node`, or `npm` is not found (for example, `'npx' is not recognized` on Windows, or `command not found: npx` on macOS/Linux):
+```json
+{
+  "mcpServers": {
+    "workiq-preview": {
+      "url": "https://workiq.svc.cloud.microsoft/mcp"
+    }
+  }
+}
+```
+
+Node.js and npm are **not required for MCP tool calls**. They are only needed when you must run optional WorkIQ CLI commands (auth, consent, config, version, diagnostics).
+
+If a CLI command fails with an error suggesting `npx`, `node`, or `npm` is not found (for example, `'npx' is not recognized` on Windows, or `command not found: npx` on macOS/Linux):
 
 1. Run `node --version` to confirm whether Node.js is installed and at version 18 or higher.
 2. If it is missing or too old, read [references/install-prerequisites.md](references/install-prerequisites.md) and walk the user through the install command appropriate for their operating system.
-3. Ask the user to **restart the Copilot CLI session** after installing — the MCP server is only launched at session start.
+3. Retry the original CLI command after installing.
 
-Do not silently retry the tool call or give up — guide the user through the install.
+Do not block MCP tool usage on local Node/npm availability; only guide the user through install when a CLI command is actually needed.
 
 ## Configuration
 
-Authentication is automatic with the connected user's credentials.
+MCP tool calls go to the hosted WorkIQ prod endpoint (`https://workiq.svc.cloud.microsoft/mcp`) and authenticate with the connected user's credentials.
+
+### Authentication before hosted MCP calls
+
+The hosted endpoint requires an authenticated Microsoft 365 user token. Your MCP host should acquire and attach that token before sending tool calls to `https://workiq.svc.cloud.microsoft/mcp`; do **not** put tokens in prompts, `.mcp.json`, or tool arguments.
+
+If a WorkIQ MCP call fails because the user is not signed in, the token is stale, or additional Graph scopes are required:
+
+1. If no account is known, ask the user which Microsoft 365 account they want WorkIQ to use. Do not guess from local git, OS, or email-like strings in the prompt.
+2. Ask the user to run `npx -y @microsoft/workiq@latest auth login --account <user@contoso.com>` in a terminal. If they do not care which account is used, `npx -y @microsoft/workiq@latest auth login` is acceptable.
+3. If the error is consent/scope-related, ask the user to run `npx -y @microsoft/workiq@latest auth consent --scopes <required scopes>`.
+4. Ask the user to restart the MCP host / Copilot CLI session so it can pick up the refreshed credentials, then retry the original WorkIQ tool call.
+
+Use the WorkIQ CLI only for out-of-band setup or diagnostics that are not MCP tools: auth login/logout, additional consent, config inspection, and version/debug commands.
 
 ## CLI commands (out-of-band of the MCP server)
 
-Some WorkIQ operations are **not exposed as MCP tools** and must be run as shell commands — for example `auth login`/`logout`, `auth consent` (granting additional permission scopes), `config show`/`set`/`reset`, and `version`. Always invoke them via `npx -y @microsoft/workiq@preview <command>` so you hit the same binary version the MCP server uses.
+Some WorkIQ operations are **not exposed as MCP tools** and must be run as shell commands — for example `auth login`/`logout`, `auth consent` (granting additional permission scopes), `config show`/`set`/`reset`, and `version`. When a CLI command is needed, invoke it via `npx -y @microsoft/workiq@latest <command>` so you use the published WorkIQ CLI rather than a stale global binary.
 
 For the full command reference and usage guidance, see `references/cli-commands.md`.
 
@@ -223,23 +248,23 @@ Entity tools provide **fast, direct access to specific M365 data** via Work IQ A
 > **Server may deny families by policy.** Tenants can disable specific path families
 > server-side. If a call returns `Access denied for path: <X>`, the path isn't in the
 > tenant's allowlist — **do not retry, do not fall back to a different path, do not call `ask`
-> as a workaround.** Tell the user the path is policy-denied. As of the current preview,
+> as a workaround.** Tell the user the path is policy-denied. Currently,
 > `/me/todo/*`, `/me/contacts`, and writes on `/me/outlook/masterCategories` are commonly
 > affected — `search_paths` confirms what's exposed for the connected tenant.
 
 ### 🛑 Binary file content is not yet released — `fetch_blob` and `upload_blob` are not callable today
 
-`fetch_blob` and `upload_blob` are documented for future reference, but **they are not part of the current preview MCP surface**. Attempting to call them returns `tool does not exist`. Do not call them, do not search for them in your tool list, do not invent them from a similar name (e.g. `download_file`, `get_blob`, `put_file`).
+`fetch_blob` and `upload_blob` are documented for future reference, but **they are not part of the current WorkIQ MCP surface**. Attempting to call them returns `tool does not exist`. Do not call them, do not search for them in your tool list, do not invent them from a similar name (e.g. `download_file`, `get_blob`, `put_file`).
 
-**You cannot retrieve or send raw bytes through this preview build yet** — no file payload, no attachment payload, no profile photo bytes, no base64 blob, no inline binary content.
+**You cannot retrieve or send raw bytes through the current WorkIQ MCP surface yet** — no file payload, no attachment payload, no profile photo bytes, no base64 blob, no inline binary content.
 
 When the user asks to download a file, upload a local file, get attachment content, or fetch a profile photo:
 
-1. **Confirm the request and tell the user this preview build does not support binary file content yet.**
+1. **Confirm the request and tell the user WorkIQ does not support binary file content yet.**
 2. **Return the file's web URL** instead — `fetch` `/me/drive/items/{id}` (or the SharePoint equivalent) returns a `webUrl` the user can open in OneDrive / SharePoint / Outlook directly. For an attachment, return the parent message URL so the user can open it in Outlook.
 3. **Never fabricate binary content.** Do not invent a base64 string, an `@odata.mediaContentType`, or an `@microsoft.graph.downloadUrl` to satisfy the request. If the user needs the bytes, point them at the web URL — they will download from there.
 
-If the user explicitly asks "why can't you download it directly?" — say the binary-download and upload tools (`fetch_blob`, `upload_blob`) are not yet released in this WorkIQ preview build; the structured-metadata tools (`fetch`, `create_entity`, etc.) are the full available surface today.
+If the user explicitly asks "why can't you download it directly?" — say the binary-download and upload tools (`fetch_blob`, `upload_blob`) are not yet released in WorkIQ; the structured-metadata tools (`fetch`, `create_entity`, etc.) are the full available surface today.
 
 ### ⚠️ Directory users and personal contacts are different stores
 

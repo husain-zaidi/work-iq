@@ -48,8 +48,8 @@ copilot plugin install workiq@microsoft
 
 **Fix:**
 
-1. Decide which channel (stable or preview) you want to use, and uninstall the others (see the "Both `workiq` and `workiq-preview` installed side-by-side" section above).
-2. If you have a globally installed `workiq` (`npm ls -g @microsoft/workiq`), make sure its version matches the one the MCP server runs (`@latest` for stable, `@preview` for preview).
+1. Decide which installed plugin you want to use, and uninstall the others (see the "Both `workiq` and `workiq-preview` installed side-by-side" section above).
+2. If you have a globally installed `workiq` (`npm ls -g @microsoft/workiq`), make sure it is current (`@latest`).
 3. If config looks corrupted or out of sync, reset it and re-consent:
 
    ```powershell
@@ -119,12 +119,12 @@ See the **URL Format Rules** section of `SKILL.md` for full examples.
 
 **Symptom:** A call to `fetch_blob`, `upload_blob`, or any variant (e.g. `download_file`, `get_blob`, `put_file`) returns "tool does not exist" — or you cannot find such a tool in your available-tools list.
 
-**Cause:** This skill does **not** expose binary-content tools. The only available tools are `ask`, `list_agents`, `search_paths`, `get_schema`, `fetch`, `call_function`, `create_entity`, `update_entity`, `delete_entity`, and `do_action`. See the deny rule in `SKILL.md`.
+**Cause:** Binary-content tools are documented for future reference but are **not released in the current WorkIQ MCP surface**. The available tools are `ask`, `list_agents`, `search_paths`, `get_schema`, `fetch`, `call_function`, `create_entity`, `update_entity`, `delete_entity`, and `do_action`. See the deny rule in `SKILL.md`.
 
 **Fix:** Do not retry, do not search for an alternate binary tool, do not invent one.
 
 - For downloads: `fetch` the item's metadata (`/me/drive/items/{id}`) and return the `webUrl` so the user can open and download in OneDrive / SharePoint / Outlook directly.
-- For uploads: tell the user this skill cannot send file bytes; offer them the destination URL so they can upload via the OneDrive / SharePoint UI.
+- For uploads: tell the user WorkIQ cannot send file bytes yet; offer them the destination URL so they can upload via the OneDrive / SharePoint UI.
 - For attachments: return the parent message URL so the user can open and download in Outlook.
 
 Never fabricate base64 content or `@microsoft.graph.downloadUrl` values to satisfy the request.
@@ -195,5 +195,3 @@ workiq auth consent --scopes ChannelMessage.ReadWrite
 ```
 
 Flavor 2 (`Authorization_RequestDenied` on `/me` directory writes) is **not** fixable by `workiq auth consent` for an end user -- a tenant admin must update the property via the directory.
-
-

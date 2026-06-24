@@ -23,6 +23,14 @@ with…", "mark … done", or "list my tasks", that is M365 data: route it to Wo
 Planner task body fields: `planId`, `title`, `bucketId`, `assignments`, `dueDateTime`,
 `percentComplete` (`0` = not started, `50` = in progress, `100` = complete).
 
+- **Fetch plans first** via `/me/planner/plans`, then fetch group plans via
+  `/groups/{group-id}/planner/plans` when group plans are referred.
+- **Private tasks and "Assigned to me" tasks:** use `/me/planner/tasks`.
+- **Enforce filtering on Planner collection GETs:**
+  - `GET /planner/plans` requires `$filter=owner eq '{Group or UserId}'`.
+  - `GET /planner/tasks` requires a `$filter` containing `planId`.
+  - `GET /planner/buckets` requires a `$filter` containing `planId`.
+
 - **Mark a Planner task done:** `update_entity` with `{"percentComplete":100}`.
 - **Planner gotcha:** `update_entity` / `delete_entity` on Planner resources
   require the current `@odata.etag` (an `If-Match` precondition). Fetch the task first to
